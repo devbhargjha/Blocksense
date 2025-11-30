@@ -1,378 +1,164 @@
 <!doctype html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>BlockSense — Secure Demo</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-:root{
-  --bg-dark:#03061a;
-  --panel:#071228;
-  --glass: rgba(255,255,255,0.02);
-  --neon1:#00f0e0;
-  --neon2:#8b63ff;
-  --muted:#9fb3c9;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:#e8fbff;background:var(--bg-dark);}
-body::before{
-  content:"";position:fixed;inset:0;
-  background-image:
-    linear-gradient(180deg, rgba(2,6,20,0.45), rgba(2,6,12,0.65)),
-    url('https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=1800&q=80');
-  background-size:cover;background-position:center;filter:contrast(110%) saturate(120%);opacity:0.98;z-index:0;
-}
-body::after{content:"";position:fixed;inset:0;background-image:
- linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
- linear-gradient(0deg, rgba(255,255,255,0.01) 1px, transparent 1px); background-size:72px 72px,72px 72px;opacity:0.04;pointer-events:none;z-index:1}.container{position:relative;max-width:1280px;margin:26px auto;padding:20px;z-index:2} .header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px} .brand{display:flex;gap:14px;align-items:center} .logoBox{width:76px;height:76px;border-radius:14px;background:linear-gradient(135deg,var(--neon2),var(--neon1));box-shadow:0 18px 50px rgba(6,182,212,0.06);display:flex;align-items:center;justify-content:center} .title{font-weight:900;font-size:20px} .subtitle{color:var(--muted);font-size:13px} .controls{display:flex;gap:12px;align-items:center} .btn{border-radius:12px;padding:10px 14px;border:0;font-weight:800;cursor:pointer;transition:transform .12s,box-shadow .12s} .btn-primary{background:linear-gradient(90deg,var(--neon2),var(--neon1));color:#041228;box-shadow:0 10px 40px rgba(139,99,255,0.12)} .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#dff8ff;padding:10px 12px} .grid{display:grid;grid-template-columns:420px 1fr;gap:20px;align-items:start} @media(max-width:1000px){ .grid{grid-template-columns:1fr} .robot-wrap{display:none} } .robot-wrap{position:fixed;left:28px;top:120px;width:420px;height:420px;z-index:6;pointer-events:none} .robot-card{width:420px;height:420px;border-radius:18px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);box-shadow:0 30px 90px rgba(2,6,12,0.7);display:flex;align-items:center;justify-content:center;transform-origin:center center;transition:transform .12s linear} .panel{border-radius:14px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);box-shadow:0 12px 40px rgba(2,6,12,0.6)} .section-title{font-weight:900;margin-bottom:6px; text-shadow:0 2px 8px rgba(139,99,255,0.06);} .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} .input{padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:#e8fbff;outline:none} .input::placeholder{color:var(--muted)} .qr-wrap{width:280px;height:280px;border-radius:12px;background:#ffffff;display:flex;align-items:center;justify-content:center;border:4px solid #ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.4)} .qr-wrap canvas{image-rendering:crisp-edges;max-width:100%;height:auto;display:block} .devs{display:flex;gap:10px;margin-top:12px} .dev-card{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)} .verify-card{border-radius:10px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);display:flex;gap:12px;align-items:center} .verify-left{flex:1} .verify-right{width:160px} .canvas-wrap{height:150px} .muted{color:var(--muted);font-size:13px} #toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999} .toast{padding:10px 12px;border-radius:10px;background:linear-gradient(90deg,#061226,#08132a);border:1px solid rgba(255,255,255,0.03);color:#dff8ff;box-shadow:0 14px 40px rgba(6,182,212,0.04)} .verify-card-prof{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);padding:18px;border-radius:12px;box-shadow:0 20px 60px rgba(2,6,12,0.6);max-width:780px;margin-top:12px} .verify-title{font-weight:900;font-size:18px;margin-bottom:6px} .verify-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap} .verify-field{color:#cfefff;font-size:14px} .verify-actions{margin-top:12px;display:flex;gap:8px} @media(max-width:700px){.verify-row{flex-direction:column;align-items:flex-start}} </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BlockSense — Secure Demo</title>
 
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-<div class="container">
-  <header class="header">
-    <div class="brand">
-      <div class="logoBox" aria-hidden>
-        <svg width="56" height="56" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#00f0e0"/><stop offset="1" stop-color="#8b63ff"/></linearGradient></defs>
-          <rect x="4" y="4" width="56" height="56" rx="12" fill="url(#lg)"></rect>
-          <text x="50%" y="56%" text-anchor="middle" dominant-baseline="middle" font-weight="900" font-family="Inter,Arial" font-size="26" fill="#041226">B</text>
-        </svg>
-      </div>
-      <div>
-        <div class="title">BlockSense — Secure Demo</div>
-        <div class="subtitle muted">Blockchain certificate verification — NIT Conclave</div>
-      </div>
-    </div><div class="controls">
-  <div id="networkBadge" class="muted">Disconnected</div>
-  <button id="connectBtn" class="btn btn-primary">Connect Wallet</button>
-  <button id="exportPdfBtn" class="btn btn-primary">Export PDF</button>
-</div>
-
-  </header>  <div class="grid">
-    <div></div><div style="margin-left:40px;">
-  <section class="panel" style="margin-bottom:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div>
-        <div class="section-title">Issue tamper-proof certificate</div>
-        <div class="muted">Store metadata on-chain — generate a normal QR — download PDF.</div>
-      </div>
-      <div style="text-align:right">
-        <div class="muted">Network: <span id="netLabel">—</span></div>
-        <div class="muted">Contract: <span id="addrShort">—</span></div>
-      </div>
-    </div>
-
-    <div style="margin-top:12px" class="form-grid">
-      <input id="certId" class="input" placeholder="Certificate ID (eg: BLOCK-001)" />
-      <input id="studentName" class="input" placeholder="Recipient full name" />
-      <input id="courseName" class="input" placeholder="Course / Event" />
-      <input id="rawHash" class="input" placeholder="Optional notes to hash" />
-    </div>
-
-    <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
-      <button id="issueBtn" class="btn btn-primary">Issue Certificate</button>
-      <button id="qrBtn" class="btn btn-primary">Generate QR</button>
-      <div id="txStatus" class="muted">No transaction yet</div>
-    </div>
-
-    <div style="display:flex;gap:14px;align-items:flex-start;margin-top:14px">
-      <div class="qr-wrap">
-        <div id="qrcode"></div>
-      </div>
-
-      <div style="flex:1">
-        <div id="issuedBox" class="panel" style="padding:12px;border-radius:10px;display:none">
-          <div class="muted">Certificate issued on-chain</div>
-          <pre id="issuedJson" style="margin-top:8px;color:#dff8ff;white-space:pre-wrap"></pre>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logoBox" aria-hidden>
+          <svg width="56" height="56" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#00f0e0"/><stop offset="1" stop-color="#8b63ff"/></linearGradient></defs>
+            <rect x="4" y="4" width="56" height="56" rx="12" fill="url(#lg)"></rect>
+            <text x="50%" y="56%" text-anchor="middle" dominant-baseline="middle" font-weight="900" font-family="Inter,Arial" font-size="26" fill="#041226">B</text>
+          </svg>
         </div>
+        <div>
+          <div class="title">BlockSense — Secure Demo</div>
+          <div class="subtitle muted">Blockchain certificate verification — NIT Conclave</div>
+        </div>
+      </div>
 
-        <div style="margin-top:12px">
-          <div class="section-title">Team</div>
-          <div class="devs">
-            <div class="dev-card" style="flex:1">
-              <div style="width:48px;height:48;border-radius:10px;background:linear-gradient(90deg,#6C5CE7,#00E0D7);display:flex;align-items:center;justify-content:center;font-weight:900;color:#041226">BJ</div>
-              <div>
-                <div style="font-weight:800">Bharg Jha</div>
-                <div class="muted">Lead Web3 · Frontend / Backend & Contracts</div>
-              </div>
+      <div class="controls">
+        <div id="networkBadge" class="muted">Disconnected</div>
+        <button id="connectBtn" class="btn btn-primary">Connect Wallet</button>
+        <button id="exportPdfBtn" class="btn btn-primary">Export PDF</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div></div>
+      <div style="margin-left:40px;">
+        <section class="panel" style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="section-title">Issue tamper-proof certificate</div>
+              <div class="muted">Store metadata on-chain — generate a normal QR — download PDF.</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Network: <span id="netLabel">—</span></div>
+              <div class="muted">Contract: <span id="addrShort">—</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="form-grid">
+            <input id="certId" class="input" placeholder="Certificate ID (eg: BLOCK-001)" />
+            <input id="studentName" class="input" placeholder="Recipient full name" />
+            <input id="courseName" class="input" placeholder="Course / Event" />
+            <input id="rawHash" class="input" placeholder="Optional notes to hash" />
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+            <button id="issueBtn" class="btn btn-primary">Issue Certificate</button>
+            <button id="qrBtn" class="btn btn-primary">Generate QR</button>
+            <div id="txStatus" class="muted">No transaction yet</div>
+          </div>
+
+          <div style="display:flex;gap:14px;align-items:flex-start;margin-top:14px">
+            <div class="qr-wrap">
+              <div id="qrcode"></div>
             </div>
 
-            <div class="dev-card" style="flex:1">
-              <div style="width:48px;height:48;border-radius:10px;background:linear-gradient(90deg,#FF7A59,#FFBA49);display:flex;align-items:center;justify-content:center;font-weight:900">AS</div>
-              <div>
-                <div style="font-weight:800">Anushaya Singh</div>
-                <div class="muted">Documentation & QA Tester</div>
+            <div style="flex:1">
+              <div id="issuedBox" class="panel" style="padding:12px;border-radius:10px;display:none">
+                <div class="muted">Certificate issued on-chain</div>
+                <pre id="issuedJson" style="margin-top:8px;color:#dff8ff;white-space:pre-wrap"></pre>
+              </div>
+
+              <div style="margin-top:12px">
+                <div class="section-title">Team</div>
+                <div class="devs">
+                  <div class="dev-card" style="flex:1">
+                    <div class="dev-avatar bj">BJ</div>
+                    <div>
+                      <div style="font-weight:800">Bharg Jha</div>
+                      <div class="muted">Lead Web3 · Frontend / Backend & Contracts</div>
+                    </div>
+                  </div>
+
+                  <div class="dev-card" style="flex:1">
+                    <div class="dev-avatar as">AS</div>
+                    <div>
+                      <div style="font-weight:800">Anushaya Singh</div>
+                      <div class="muted">Documentation & QA Tester</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="section-title">Live session</div>
+            <div style="text-align:right">
+              <div id="count" style="font-weight:800;font-size:20px">0</div>
+              <div class="muted">Certificates</div>
+            </div>
+          </div>
+          <div class="canvas-wrap" style="margin-top:12px"><canvas id="chart" height="120"></canvas></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">Verify certificate</div>
+          <div class="muted">Scan QR or enter Certificate ID</div>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <input id="verifyId" class="input" placeholder="Enter certId (eg: BLOCK-001)" />
+            <button id="verifyBtn" class="btn btn-primary">Verify</button>
+          </div>
+
+          <div id="verifyRes" style="display:none;margin-top:12px">
+            <div id="verifyCard" class="verify-card">
+              <div class="verify-left">
+                <div id="vStudent" style="font-size:18px;font-weight:800">—</div>
+                <div id="vCourse" class="muted" style="margin-top:6px">—</div>
+                <div id="vMeta" class="muted" style="margin-top:10px">Certificate ID: —</div>
+              </div>
+              <div class="verify-right">
+                <div style="font-weight:900;color:#06f0d0">Status: <span id="vStatus" style="font-weight:800;color:#fff">—</span></div>
+                <div style="margin-top:10px" class="muted">Issuer</div>
+                <div id="vIssuer" style="font-weight:700">—</div>
+                <div class="muted" style="margin-top:8px">Issued</div>
+                <div id="vDate">—</div>
               </div>
             </div>
           </div>
-        </div>
 
+        </section>
       </div>
     </div>
-  </section>
-
-  <section class="panel" style="margin-bottom:12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div class="section-title">Live session</div>
-      <div style="text-align:right">
-        <div id="count" style="font-weight:800;font-size:20px">0</div>
-        <div class="muted">Certificates</div>
-      </div>
-    </div>
-    <div class="canvas-wrap" style="margin-top:12px"><canvas id="chart" height="120"></canvas></div>
-  </section>
-
-  <section class="panel">
-    <div class="section-title">Verify certificate</div>
-    <div class="muted">Scan QR or enter Certificate ID</div>
-    <div style="display:flex;gap:10px;margin-top:10px">
-      <input id="verifyId" class="input" placeholder="Enter certId (eg: BLOCK-001)" />
-      <button id="verifyBtn" class="btn btn-primary">Verify</button>
-    </div>
-
-    <div id="verifyRes" style="display:none;margin-top:12px">
-      <div id="verifyCard" class="verify-card">
-        <div class="verify-left">
-          <div id="vStudent" style="font-size:18px;font-weight:800">—</div>
-          <div id="vCourse" class="muted" style="margin-top:6px">—</div>
-          <div id="vMeta" class="muted" style="margin-top:10px">Certificate ID: —</div>
-        </div>
-        <div class="verify-right">
-          <div style="font-weight:900;color:#06f0d0">Status: <span id="vStatus" style="font-weight:800;color:#fff">—</span></div>
-          <div style="margin-top:10px" class="muted">Issuer</div>
-          <div id="vIssuer" style="font-weight:700">—</div>
-          <div class="muted" style="margin-top:8px">Issued</div>
-          <div id="vDate">—</div>
-        </div>
-      </div>
-    </div>
-
-  </section>
-</div>
-
   </div>
-</div><div class="robot-wrap" aria-hidden>
-  <div id="robotCard" class="robot-card">
-    <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
-      <defs><linearGradient id="rg1" x1="0" x2="1"><stop offset="0" stop-color="#7fe3ff"/><stop offset="1" stop-color="#9b7cff"/></linearGradient></defs>
-      <rect x="12" y="12" rx="24" width="336" height="336" fill="url(#rg1)"/>
-      <rect x="40" y="44" rx="16" width="276" height="176" fill="#041827" opacity="0.14"/>
-      <ellipse id="eyeL_bg" cx="124" cy="132" rx="28" ry="22" fill="#fff"/>
-      <ellipse id="eyeR_bg" cx="236" cy="132" rx="28" ry="22" fill="#fff"/>
-      <circle id="pupilL" cx="124" cy="132" r="8" fill="#041827"/>
-      <circle id="pupilR" cx="236" cy="132" r="8" fill="#041827"/>
-      <rect x="120" y="172" rx="8" width="120" height="10" fill="#041827" opacity="0.9"/>
-      <rect x="26" y="216" rx="16" width="308" height="96" fill="rgba(255,255,255,0.02)"/>
-    </svg>
+
+  <div class="robot-wrap" aria-hidden>
+    <div id="robotCard" class="robot-card">
+      <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="rg1" x1="0" x2="1"><stop offset="0" stop-color="#7fe3ff"/><stop offset="1" stop-color="#9b7cff"/></linearGradient></defs>
+        <rect x="12" y="12" rx="24" width="336" height="336" fill="url(#rg1)"/>
+        <rect x="40" y="44" rx="16" width="276" height="176" fill="#041827" opacity="0.14"/>
+        <ellipse id="eyeL_bg" cx="124" cy="132" rx="28" ry="22" fill="#fff"/>
+        <ellipse id="eyeR_bg" cx="236" cy="132" rx="28" ry="22" fill="#fff"/>
+        <circle id="pupilL" cx="124" cy="132" r="8" fill="#041827"/>
+        <circle id="pupilR" cx="236" cy="132" r="8" fill="#041827"/>
+        <rect x="120" y="172" rx="8" width="120" height="10" fill="#041827" opacity="0.9"/>
+        <rect x="26" y="216" rx="16" width="308" height="96" fill="rgba(255,255,255,0.02)"/>
+      </svg>
+    </div>
   </div>
-</div><div id="toast"></div><script>
-const contractAddress = "0xc7BD099627d1C65170a34a3215aB2FC1937d419C";
-const contractABI = [
-	{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"certId","type":"string"},{"indexed":false,"internalType":"string","name":"studentName","type":"string"},{"indexed":false,"internalType":"string","name":"courseName","type":"string"},{"indexed":false,"internalType":"string","name":"certHash","type":"string"},{"indexed":false,"internalType":"uint256","name":"issueDate","type":"uint256"},{"indexed":false,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateIssued","type":"event"},
-	{"inputs":[{"internalType":"string","name":"certId","type":"string"},{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"}],"name":"issueCertificate","outputs":[],"stateMutability":"nonpayable","type":"function"},
-	{"inputs":[{"internalType":"string","name":"certId","type":"string"}],"name":"verifyCertificate","outputs":[{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"},{"internalType":"uint256","name":"issueDate","type":"uint256"},{"internalType":"address","name":"issuer","type":"address"}],"stateMutability":"view","type":"function"}
-];
-const PUBLIC_RPC = "https://sepolia.infura.io/v3/YOUR_INFURA_KEY";
-const $ = id => document.getElementById(id);
-function toast(msg){ const e = document.createElement('div'); e.className='toast'; e.innerText = msg; $('toast').appendChild(e); setTimeout(()=> e.remove(),4200); }
 
-let myChart;
-function initChart(){ try{ const c = $('chart').getContext('2d'); myChart = new Chart(c, { type:'line', data:{ labels:[], datasets:[{label:'issued', data:[], borderColor:'#00f0e0', backgroundColor:'rgba(0,240,224,0.07)', fill:true, tension:0.45}]}, options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}}); }catch(e){console.warn('Chart init failed', e);} }
+  <div id="toast"></div>
 
-(function robotFollow(){
-  const pL = document.getElementById('pupilL'), pR = document.getElementById('pupilR'), robot = document.getElementById('robotCard');
-  let W = window.innerWidth, H = window.innerHeight;
-  window.addEventListener('resize', ()=>{ W = window.innerWidth; H = window.innerHeight; });
-  window.addEventListener('pointermove', (e)=>{
-    const map = (v,a,b,c,d) => c + (v-a)*(d-c)/(b-a);
-    const pxL = Math.max(100, Math.min(140, map(e.clientX,0,W,100,140)));
-    const pyL = Math.max(120, Math.min(150, map(e.clientY,0,H,120,150)));
-    const pxR = Math.max(220, Math.min(260, map(e.clientX,0,W,220,260)));
-    const pyR = Math.max(120, Math.min(150, map(e.clientY,0,H,120,150)));
-    if(pL){ pL.setAttribute('cx', pxL); pL.setAttribute('cy', pyL); }
-    if(pR){ pR.setAttribute('cx', pxR); pR.setAttribute('cy', pyR); }
-    const rx = (e.clientX - W/2)/140; const ry = (e.clientY - H/2)/220;
-    if(robot) robot.style.transform = `translateY(${Math.max(-12, Math.min(12, -ry))}px) rotate(${rx}deg)`;
-  });
-})();
-
-function drawQR(text, size = 280){
-  const box = $('qrcode'); box.innerHTML = '';
-  try{
-    new QRCode(box, { text, width: size, height: size, colorDark:"#000000", colorLight:"#ffffff" });
-    const canvas = box.querySelector('canvas');
-    if(canvas){ canvas.style.width = size + 'px'; canvas.style.height = size + 'px'; canvas.style.imageRendering = 'pixelated'; }
-  }catch(e){ console.error('QR fail', e); box.innerText='QR error'; }
-}
-
-let provider, signer, contract;
-let issuedCount = 0;
-
-async function connectWallet(){
-  try{
-    if(!window.ethereum){ toast('MetaMask not installed'); return; }
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send('eth_requestAccounts', []);
-    signer = provider.getSigner();
-    const addr = await signer.getAddress();
-    $('addrShort').innerText = addr.slice(0,6) + '...' + addr.slice(-4);
-    const net = await provider.getNetwork();
-    $('netLabel').innerText = net.name || net.chainId;
-    $('networkBadge').innerText = 'Connected';
-    contract = new ethers.Contract(contractAddress, contractABI, signer);
-    toast('Wallet connected');
-    try{
-      contract.on('CertificateIssued', (certId, studentName, courseName, certHash, issueDate, issuer) => {
-        addTxDisplay(`Event: ${certId} by ${issuer}`);
-        incrementCount();
-      });
-    }catch(e){}
-  }catch(e){ console.error(e); toast('Connect failed: '+(e?.message||e)); }
-}
-
-async function issueCertificate(){
-  if(!contract){ toast('Connect wallet first'); return; }
-  const certId = $('certId').value.trim(); if(!certId){ toast('Enter certificate ID'); return; }
-  const student = $('studentName').value.trim(); const course = $('courseName').value.trim();
-  const raw = $('rawHash').value.trim();
-  const certHash = raw ? ethers.utils.id(raw) : ethers.utils.hexlify(ethers.utils.randomBytes(12));
-  try{
-    $('issueBtn').disabled=true; $('txStatus').innerText = 'Sending transaction...';
-    const tx = await contract.issueCertificate(certId, student, course, certHash);
-    addTxDisplay(`Tx: ${tx.hash}`);
-    toast('Tx sent: ' + tx.hash);
-    await tx.wait();
-    $('txStatus').innerText = 'Mined: ' + tx.hash;
-    const issued = { certId, student, course, certHash, issueDate: new Date().toLocaleString(), issuer: await signer.getAddress() };
-    $('issuedJson').innerText = JSON.stringify(issued, null, 2);
-    $('issuedBox').style.display = 'block';
-    const url = window.location.origin + location.pathname + '?certId=' + encodeURIComponent(certId);
-    drawQR(url, 280);
-    incrementCount();
-  }catch(e){ console.error(e); toast('Tx failed: '+(e?.message||e)); $('txStatus').innerText = 'Tx failed'; }
-  finally{ $('issueBtn').disabled=false; }
-}
-
-function addTxDisplay(txt){
-  const node = document.createElement('div'); node.style.marginBottom='8px'; node.style.color='#cfefff';
-  node.innerText = (typeof txt === 'string' ? txt : JSON.stringify(txt)).slice(0,400);
-  $('issuedBox').prepend(node);
-}
-function incrementCount(){ issuedCount++; $('count').innerText = issuedCount; if(myChart){ myChart.data.labels.push(''); myChart.data.datasets[0].data.push(Math.floor(Math.random()*6)+1); myChart.update(); } }
-
-async function exportPDF(){
-  const issuedText = $('issuedJson').innerText;
-  const obj = issuedText ? JSON.parse(issuedText) : { certId: $('certId').value||'N/A', student: $('studentName').value||'N/A', course: $('courseName').value||'N/A', issueDate: new Date().toLocaleString() };
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
-  doc.setFillColor(6,14,32); doc.rect(0,0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
-  doc.setDrawColor(139,99,255); doc.setLineWidth(6); doc.rect(18,18, doc.internal.pageSize.width-36, doc.internal.pageSize.height-36, 'S');
-  doc.setFontSize(28); doc.setTextColor(255,255,255); doc.text('BlockSense — Certificate', 60, 80);
-  doc.setFontSize(14); doc.setTextColor(200,220,235); doc.text('Tamper-proof on-chain certificate — verify using QR or contract', 60, 104);
-  doc.setFillColor(255,255,255,0.03); doc.rect(60,130,620,170,'F');
-  doc.setFontSize(22); doc.setTextColor(255,255,255); doc.text(obj.student || 'Recipient Name', 80, 170);
-  doc.setFontSize(12); doc.setTextColor(200,220,235); doc.text('Course: ' + (obj.course || '—'), 80, 200);
-  doc.text('Certificate ID: ' + (obj.certId || '—'), 80, 220);
-  doc.text('Issued: ' + (obj.issueDate || new Date().toLocaleString()), 80, 240);
-  const qrCanvas = $('qrcode').querySelector('canvas');
-  if(qrCanvas){
-    const data = qrCanvas.toDataURL('image/png');
-    doc.addImage(data,'PNG',700,140,120,120);
-  }
-  doc.setFontSize(10); doc.setTextColor(190,210,230); doc.text('Issuer: BlockSense • Contract: ' + (contractAddress || '—'), 60, doc.internal.pageSize.height - 60);
-  doc.save((obj.certId || 'certificate') + '.pdf');
-}
-
-function escapeHtml(s){ if(!s && s !== 0) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-function renderVerifyCard(obj){
-  const area = document.getElementById('verifyRes');
-  area.style.display = 'block';
-  const container = document.getElementById('verifyCard');
-  if(container){
-    document.getElementById('vStudent').innerText = obj.studentName || '—';
-    document.getElementById('vCourse').innerText = obj.courseName || '—';
-    document.getElementById('vMeta').innerText = `Certificate ID: ${obj.certId || '—'}`;
-    document.getElementById('vIssuer').innerText = obj.issuer || '—';
-    document.getElementById('vDate').innerText = obj.issueDate || '—';
-    document.getElementById('vStatus').innerText = obj.valid ? 'VALID' : 'NOT FOUND';
-  }
-  // create a temporary QR in verify area (large)
-  const verifyQRBoxId = 'verifyQRBox_internal';
-  let existing = document.getElementById(verifyQRBoxId);
-  if(!existing){
-    existing = document.createElement('div'); existing.id = verifyQRBoxId;
-    existing.style.width = '160px'; existing.style.height = '160px';
-    existing.style.marginTop = '12px';
-    const right = document.querySelector('.verify-right');
-    if(right) right.appendChild(existing);
-  }
-  existing.innerHTML = '';
-  const verifyLink = window.location.origin + location.pathname + '?certId=' + encodeURIComponent(obj.certId || '');
-  try{ new QRCode(existing, { text: verifyLink, width:160, height:160, colorDark:"#000000", colorLight:"#ffffff" }); }catch(e){}
-}
-
-async function verifyWithoutWallet(certId){
-  try{
-    const provider = new ethers.providers.JsonRpcProvider(PUBLIC_RPC);
-    const roContract = new ethers.Contract(contractAddress, contractABI, provider);
-    const out = await roContract.verifyCertificate(certId);
-    const issueDate = (out[3] && out[3].toNumber) ? new Date(out[3].toNumber()*1000).toLocaleString() : (out[3] || '');
-    const obj = { certId, studentName: out[0], courseName: out[1], certHash: out[2], issueDate, issuer: out[4], valid: true };
-    renderVerifyCard(obj);
-    toast('Certificate verified (public RPC)');
-  }catch(err){
-    const obj = { certId, studentName: '—', courseName: '—', certHash: '', issueDate: '', issuer: '—', valid: false };
-    renderVerifyCard(obj);
-    toast('Verify failed or not found');
-  }
-}
-
-async function verifyCertificate(){
-  const id = $('verifyId').value.trim();
-  if(!id){ toast('Enter cert ID'); return; }
-  if(PUBLIC_RPC && PUBLIC_RPC.length>10){
-    await verifyWithoutWallet(id);
-    return;
-  }
-  if(!contract){ toast('Connect wallet to verify'); return; }
-  try{
-    const out = await contract.verifyCertificate(id);
-    const issueDate = (out[3] && out[3].toNumber) ? new Date(out[3].toNumber()*1000).toLocaleString() : out[3];
-    const obj = { certId: id, studentName: out[0], courseName: out[1], certHash: out[2], issueDate, issuer: out[4], valid: true };
-    renderVerifyCard(obj);
-    toast('Certificate verified');
-  }catch(e){
-    const obj = { certId: id, studentName: '—', courseName: '—', certHash: '', issueDate: '', issuer: '—', valid: false };
-    renderVerifyCard(obj);
-    toast('Verify failed: ' + (e?.message || 'not found'));
-  }
-}
-
-window.addEventListener('load', ()=>{
-  initChart();
-  $('connectBtn').addEventListener('click', connectWallet);
-  $('issueBtn').addEventListener('click', issueCertificate);
-  $('qrBtn').addEventListener('click', ()=>{
-    const id = $('certId').value.trim(); if(!id){ toast('Enter cert ID'); return; }
-    drawQR(window.location.origin + location.pathname + '?certId=' + encodeURIComponent(id), 280);
-    toast('QR generated (normal)');
-  });
-  $('verifyBtn').addEventListener('click', verifyCertificate);
-  $('exportPdfBtn').addEventListener('click', exportPDF);
-  drawQR(window.location.origin, 280);
-  const u = new URL(location.href); const c = u.searchParams.get('certId');
-  if(c){
-    $('verifyId').value = c;
-    setTimeout(()=> verifyWithoutWallet(c), 200);
-    setTimeout(()=>{ const el = document.getElementById('verifyRes'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 500);
-  }
-});
-</script></body>
+  <script src="app.js"></script>
+</body>
 </html>
