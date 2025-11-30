@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BlockSense — Verify</title>
+<link rel="stylesheet" href="app.css">
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+<div class="verify-wrap">
+  <header class="top small">
+    <div class="brand"><div class="logo small">B</div><div><h1>BlockSense</h1><div class="muted">Certificate verification</div></div></div>
+  </header>
+
+  <main class="verify-main">
+    <div class="card">
+      <h2>Verify Certificate</h2>
+      <p class="muted">Public verification — paste a Certificate ID or open this page from scanning a certificate QR.</p>
+      <div class="verify-row">
+        <input id="certId" placeholder="Certificate ID (eg: BLOCK-001)" />
+        <button id="checkBtn" class="btn">Check</button>
+      </div>
+
+      <div id="result" class="verify-result" style="display:none">
+        <div class="result-left">
+          <div id="name" class="vtitle">—</div>
+          <div id="course" class="muted">—</div>
+          <div id="meta" class="muted small">Certificate ID: —</div>
+        </div>
+        <div class="result-right">
+          <div class="muted small">Status</div>
+          <div id="status" class="status">—</div>
+          <div class="muted small">Issuer</div>
+          <div id="issuer">—</div>
+          <div class="muted small">Issued</div>
+          <div id="issued">—</div>
+        </div>
+      </div>
+
+      <div id="notfound" style="display:none" class="notfound card"><h3>Certificate not found</h3><p class="muted">This certificate ID is not on-chain or not yet issued.</p></div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const contractAddress = "0xc7BD099627d1C65170a34a3215aB2FC1937d419C";
+const contractABI = [{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"certId","type":"string"},{"indexed":false,"internalType":"string","name":"studentName","type":"string"},{"indexed":false,"internalType":"string","name":"courseName","type":"string"},{"indexed":false,"internalType":"string","name":"certHash","type":"string"},{"indexed":false,"internalType":"uint256","name":"issueDate","type":"uint256"},{"indexed":false,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateIssued","type":"event"},{"inputs":[{"internalType":"string","name":"certId","type":"string"},{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"}],"name":"issueCertificate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"certId","type":"string"}],"name":"verifyCertificate","outputs":[{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"},{"internalType":"uint256","name":"issueDate","type":"uint256"},{"internalType":"address","name":"issuer","type":"address"}],"stateMutability":"view","type":"function"}];
+
+const $ = id => document.getElementById(id);
+let provider;
+window.addEventListener('load', ()=>{
+  provider = ethers.getDefaultProvider('sepolia');
+  const u = new URL(location.href); const certParam = u.searchParams.get('certId');
+  if(certParam){ $('certId').value = certParam; checkCertificate(certParam); }
+  $('checkBtn').addEventListener('click', ()=> checkCertificate($('certId').value.trim()));
+});
+
+async function checkCertificate(id){
+  if(!id){ alert('Enter cert id'); return; }
+  try{
+    const readContract = new ethers.Contract(contractAddress, contractABI, provider);
+    const out = await readContract.verifyCertificate(id);
+    const studentName = out[0] || '—';
+    const courseName = out[1] || '—';
+    const issueDate = (out[3] && out[3].toNumber) ? new Date(out[3].toNumber()*1000).toLocaleString() : out[3] || '—';
+    const issuer = out[4] || '—';
+    $('name').innerText = studentName;
+    $('course').innerText = courseName;
+    $('meta').innerText = 'Certificate ID: ' + id;
+    $('status').innerText = 'AUTHENTIC';
+    $('issuer').innerText = issuer;
+    $('issued').innerText = issueDate;
+    $('result').style.display = 'flex';
+    $('notfound').style.display = 'none';
+  }catch(e){
+    $('result').style.display='none'; $('notfound').style.display='block';
+  }
+}
+</script>
+</body>
+</html>
