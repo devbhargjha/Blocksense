@@ -1,1 +1,54 @@
-
+:root{
+  --bg:#03061a; --panel:#071228; --muted:#9fb3c9; --accent1:#00f0e0; --accent2:#8b63ff;
+  --glass: rgba(255,255,255,0.03);
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Arial,Helvetica,sans-serif}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#03061a,#04102a);color:#e8fbff}
+.wrap{max-width:1200px;margin:22px auto;padding:18px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.top.small{padding:12px 0}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:56px;height:56;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent1));display:flex;align-items:center;justify-content:center;font-weight:900;color:#041226}
+.logo.small{width:40px;height:40;font-size:18px}
+.brand h1{margin:0;font-size:18px}
+.muted{color:var(--muted);font-size:13px}
+.btn{border-radius:10px;padding:10px 14px;border:0;background:#ffffff0a;color:#dff8ff;cursor:pointer;font-weight:700}
+.btn.primary{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#041226}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
+.actions{display:flex;gap:12px;align-items:center}
+.main-grid{display:grid;grid-template-columns:360px 1fr;gap:20px}
+.left-panel{position:relative}
+.robot-card{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:14px;padding:12px}
+.center-panel{min-height:300px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 16px 40px rgba(2,6,12,0.6)}
+.mt{margin-top:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.form-grid input{padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e8fbff}
+.controls{display:flex;gap:10px;align-items:center;margin-top:12px}
+.below{display:flex;gap:14px;margin-top:14px}
+.qr-box{width:200px;height:200;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);padding:6px;border:1px solid rgba(255,255,255,0.03)}
+.issued{margin-top:8px;background:transparent;padding:8px;border-radius:8px;overflow:auto}
+.issued pre{white-space:pre-wrap;color:#dff8ff}
+.team{margin-top:12px}
+.team-row{display:flex;gap:10px}
+.dev-card{display:flex;gap:8px;align-items:center}
+.member{display:flex;gap:8px;align-items:center}
+.avatar{width:48px;height:48;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800}
+.bj{background:linear-gradient(90deg,#6C5CE7,#00E0D7);color:#041226}
+.as{background:linear-gradient(90deg,#FF7A59,#FFBA49);color:#041226}
+.count{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.verify-row{display:flex;gap:8px;margin-top:10px}
+.verify-row input{flex:1;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:#e8fbff}
+.verify-card{display:flex;justify-content:space-between;gap:12px;margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.04)}
+.left{flex:1}
+.right{width:160px;text-align:right}
+.vtitle{font-size:18px;font-weight:800}
+.small{font-size:12px}
+.status{font-weight:900;color:#06f0d0}
+.toast-wrap{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+.toast{background:#071226;border-radius:8px;padding:8px 12px;color:#dff8ff;border:1px solid rgba(255,255,255,0.03)}
+.verify-wrap{max-width:900px;margin:24px auto}
+.verify-main{padding:0 12px}
+.verify-result{display:flex;justify-content:space-between;gap:14px;margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.04)}
+.notfound{margin-top:12px;padding:12px;border-radius:8px;background:#2b182f}
+@media(max-width:960px){ .main-grid{grid-template-columns:1fr} .left-panel{display:none} .qr-box{display:none} }
