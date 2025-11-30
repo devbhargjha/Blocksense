@@ -1,120 +1,209 @@
 <!doctype html>
+
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>BlockSense — Secure Demo</title>
-<link rel="stylesheet" href="app.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg-dark:#03061a; --muted:#9fb3c9; --neon1:#00f0e0; --neon2:#8b63ff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:#e8fbff;background:var(--bg-dark)}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(180deg, rgba(2,6,20,0.45), rgba(2,6,12,0.65)),url('https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=1800&q=80');background-size:cover;background-position:center;filter:contrast(105%) saturate(110%);opacity:0.98;z-index:0}
+.container{position:relative;max-width:1200px;margin:28px auto;padding:20px;z-index:2}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.brand{display:flex;gap:14px;align-items:center}
+.logoBox{width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg,var(--neon2),var(--neon1));display:flex;align-items:center;justify-content:center}
+.title{font-weight:800;font-size:20px}
+.subtitle{color:var(--muted);font-size:13px}
+.controls{display:flex;gap:10px;align-items:center}
+.btn{border-radius:10px;padding:10px 14px;border:0;font-weight:700;cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,var(--neon2),var(--neon1));color:#021224}
+.panel{border-radius:12px;padding:16px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 40px rgba(2,6,12,0.6)}
+.grid{display:grid;grid-template-columns:420px 1fr;gap:20px;align-items:start}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.robot-wrap{display:none}}
+.robot-wrap{position:fixed;left:24px;top:120px;width:380px;height:380px;z-index:6;pointer-events:none}
+.robot-card{width:360px;height:360px;border-radius:18px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;box-shadow:0 30px 90px rgba(2,6,12,0.7)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.input{padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:#e8fbff;outline:none}
+.qr-wrap{width:200px;height:200px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01))}
+.devs{display:flex;gap:10px;margin-top:12px}
+.dev-card{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
+.muted{color:var(--muted);font-size:13px}
+.verify-card{border-radius:10px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);display:flex;gap:12px;align-items:center}
+#toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+.toast{padding:10px 12px;border-radius:10px;background:linear-gradient(90deg,#061226,#08132a);border:1px solid rgba(255,255,255,0.03);color:#dff8ff}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none}
+</style>
 </head>
 <body>
-<div class="page">
-  <header class="topbar">
+<div class="container" id="mainApp">
+  <header class="header">
     <div class="brand">
-      <div class="logo">B</div>
+      <div class="logoBox" aria-hidden>
+        <svg width="56" height="56" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg2" x1="0" x2="1"><stop offset="0" stop-color="#00f0e0"/><stop offset="1" stop-color="#8b63ff"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="12" fill="url(#lg2)"></rect><text x="50%" y="56%" text-anchor="middle" dominant-baseline="middle" font-weight="900" font-family="Inter,Arial" font-size="28" fill="#041226">B</text></svg>
+      </div>
       <div>
         <div class="title">BlockSense — Secure Demo</div>
-        <div class="subtitle">Blockchain certificate verification — NIT Conclave</div>
+        <div class="subtitle muted">Blockchain certificate verification — NIT Conclave</div>
       </div>
     </div>
-    <div class="actions">
-      <div id="networkBadge" class="muted">Disconnected</div>
-      <button id="connectBtn" class="btn primary">Connect Wallet</button>
-      <button id="exportPdfBtn" class="btn ghost">Export PDF</button>
+    <div class="controls">
+      <div id="networkBadge" class="small">Disconnected</div>
+      <button id="connectBtn" class="btn btn-primary">Connect Wallet</button>
+      <button id="exportPdfBtn" class="btn btn-primary">Export PDF</button>
     </div>
-  </header>
-
-  <main class="layout">
-    <aside class="leftPanel">
-      <div class="robotCard" id="robotCard">
-        <svg viewBox="0 0 360 360" preserveAspectRatio="xMidYMid meet">
-          <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#7fe3ff"/><stop offset="1" stop-color="#9b7cff"/></linearGradient></defs>
-          <rect x="12" y="12" rx="28" width="336" height="336" fill="url(#g1)"/>
-          <rect x="40" y="44" rx="16" width="276" height="176" fill="#041827" opacity="0.12"/>
-          <ellipse cx="124" cy="132" rx="28" ry="22" fill="#fff"/>
-          <ellipse cx="236" cy="132" rx="28" ry="22" fill="#fff"/>
-          <circle id="pupilL" cx="124" cy="132" r="8" fill="#041827"/>
-          <circle id="pupilR" cx="236" cy="132" r="8" fill="#041827"/>
-        </svg>
+  </header>  <div class="grid">
+    <div></div><div style="margin-left:40px">
+  <section class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-weight:800;font-size:18px">Issue tamper-proof certificate</div>
+        <div class="muted small">Store metadata on Sepolia, generate downloadable PDF and a QR that links to the public verification page.</div>
       </div>
-      <div class="liveBox panel">
-        <div class="panelTitle">Live session</div>
-        <div class="liveCount"><span id="count">0</span><div class="muted">Certificates</div></div>
-        <canvas id="chart" height="120"></canvas>
+      <div style="text-align:right">
+        <div class="muted small">Network: <span id="netLabel">—</span></div>
+        <div class="muted small">Contract: <span id="addrShort">—</span></div>
       </div>
-    </aside>
+    </div>
 
-    <section class="centerPanel">
-      <div class="panel">
-        <div class="panelTitle">Issue tamper-proof certificate</div>
-        <div class="desc muted">Store metadata on-chain — generate a normal QR — download PDF automatically after success.</div>
-        <div class="formGrid">
-          <input id="certId" class="input" placeholder="Certificate ID (eg: BLOCK-001)" />
-          <input id="studentName" class="input" placeholder="Recipient full name" />
-          <input id="courseName" class="input" placeholder="Course / Event" />
-          <input id="rawHash" class="input" placeholder="Optional notes (will be hashed)" />
+    <div class="form-grid">
+      <input id="certId" class="input" placeholder="Certificate ID (eg: BLOCK-001)" />
+      <input id="studentName" class="input" placeholder="Recipient full name" />
+      <input id="courseName" class="input" placeholder="Course / Event" />
+      <input id="rawHash" class="input" placeholder="Optional notes to hash" />
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+      <button id="issueBtn" class="btn btn-primary">Issue Certificate</button>
+      <button id="qrBtn" class="btn btn-primary">Generate QR</button>
+      <div id="txStatus" class="small">No transaction yet</div>
+    </div>
+
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-top:14px">
+      <div class="qr-wrap"><div id="qrcode"></div></div>
+
+      <div style="flex:1">
+        <div id="issuedBox" class="panel hidden" style="padding:12px;border-radius:10px">
+          <div class="small">Certificate issued on-chain</div>
+          <pre id="issuedJson" style="margin-top:8px;color:#dff8ff;white-space:pre-wrap"></pre>
         </div>
 
-        <div class="controlsRow">
-          <button id="issueBtn" class="btn primary">Issue Certificate</button>
-          <button id="qrBtn" class="btn primary">Generate QR</button>
-          <div id="txStatus" class="muted">No transaction yet</div>
-        </div>
-
-        <div class="belowRow">
-          <div class="qrWrap">
-            <div id="qrcode"></div>
-          </div>
-
-          <div class="issued panel" id="issuedBox" style="display:none">
-            <div class="panelTitle">Certificate issued</div>
-            <pre id="issuedJson" class="issuedPre"></pre>
+        <div style="margin-top:12px">
+          <div style="font-weight:800">Team</div>
+          <div class="devs">
+            <div class="dev-card" style="flex:1"><div style="width:46px;height:46;border-radius:10px;background:linear-gradient(90deg,#6C5CE7,#00E0D7);display:flex;align-items:center;justify-content:center;font-weight:900;color:#041226">BJ</div><div><div style="font-weight:700">Bharg Jha</div><div class="muted small">Lead Web3 · Frontend/Backend & Contracts</div></div></div>
+            <div class="dev-card" style="flex:1"><div style="width:46px;height:46;border-radius:10px;background:linear-gradient(90deg,#FF7A59,#FFBA49);display:flex;align-items:center;justify-content:center;font-weight:900">AS</div><div><div style="font-weight:700">Anushaya Singh</div><div class="muted small">Documentation & QA Tester</div></div></div>
           </div>
         </div>
 
-        <div class="team panel">
-          <div class="panelTitle">Team</div>
-          <div class="teamRow">
-            <div class="devCard"><div class="tag">BJ</div><div><b>Bharg Jha</b><div class="muted">Lead Web3 · Frontend/Backend & Contracts</div></div></div>
-            <div class="devCard"><div class="tag alt">AS</div><div><b>Anushaya Singh</b><div class="muted">Documentation & QA Tester</div></div></div>
-          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:800">Live session</div>
+      <div style="text-align:right">
+        <div id="count" style="font-weight:800;font-size:18px">0</div>
+        <div class="small muted">Certificates</div>
+      </div>
+    </div>
+    <div style="margin-top:12px"><canvas id="chart" height="120"></canvas></div>
+  </section>
+
+  <section class="panel" style="margin-top:14px">
+    <div style="font-weight:800">Verify certificate</div>
+    <div class="muted small">Scan QR (opens this page with certId) or enter Certificate ID</div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <input id="verifyId" class="input" placeholder="Enter certId (eg: BLOCK-001)" />
+      <button id="verifyBtn" class="btn btn-primary">Verify</button>
+    </div>
+
+    <div id="verifyRes" class="hidden" style="margin-top:12px">
+      <div id="verifyCard" class="verify-card">
+        <div style="flex:1">
+          <div id="vStudent" style="font-size:18px;font-weight:800">—</div>
+          <div id="vCourse" class="muted" style="margin-top:6px">—</div>
+          <div id="vMeta" class="muted" style="margin-top:10px">Certificate ID: —</div>
+          <div id="vHash" class="small muted" style="margin-top:8px;word-break:break-all"></div>
+        </div>
+        <div style="width:200px;text-align:right">
+          <div style="font-weight:900;color:#06f0d0">Status: <span id="vStatus" style="font-weight:800;color:#fff">—</span></div>
+          <div class="muted small" style="margin-top:10px">Issuer</div>
+          <div id="vIssuer" style="font-weight:700">—</div>
+          <div class="muted small" style="margin-top:8px">Issued</div>
+          <div id="vDate">—</div>
+          <div style="margin-top:12px"><a id="downloadVerifiedPdf" class="btn btn-primary" href="#" download>Download Verified PDF</a></div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="panel" style="margin-top:14px">
-        <div class="panelTitle">Verify certificate</div>
-        <div class="desc muted">Scan QR or enter Certificate ID (open without MetaMask).</div>
-        <div class="verifyWrap">
-          <input id="verifyId" class="input" placeholder="Enter certId (eg: BLOCK-001)" />
-          <button id="verifyBtn" class="btn primary">Verify</button>
-        </div>
-
-        <div id="verifyRes" class="verifyCard" style="display:none">
-          <div class="verifyLeft">
-            <div id="vStudent" class="vTitle">—</div>
-            <div id="vCourse" class="muted">—</div>
-            <div id="vMeta" class="muted">Certificate ID: —</div>
-          </div>
-          <div class="verifyRight">
-            <div>Status: <span id="vStatus" class="status">—</span></div>
-            <div class="muted">Issuer</div>
-            <div id="vIssuer">—</div>
-            <div class="muted">Issued</div>
-            <div id="vDate">—</div>
-            <div style="margin-top:10px"><button id="downloadVerifyPdf" class="btn ghost">Download Verified PDF</button></div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer muted">Secure verification subsite available at <span class="em">/verify.html</span></footer>
 </div>
 
-<script src="app.js"></script>
-</body>
+  </div>
+</div><div class="robot-wrap" aria-hidden>
+  <div id="robotCard" class="robot-card">
+    <svg width="320" height="320" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="rg1" x1="0" x2="1"><stop offset="0" stop-color="#7fe3ff"/><stop offset="1" stop-color="#9b7cff"/></linearGradient></defs>
+      <rect x="12" y="12" rx="24" width="336" height="336" fill="url(#rg1)"/>
+      <rect x="40" y="44" rx="16" width="276" height="176" fill="#041827" opacity="0.14"/>
+      <ellipse cx="124" cy="132" rx="28" ry="22" fill="#fff"/>
+      <ellipse cx="236" cy="132" rx="28" ry="22" fill="#fff"/>
+      <circle id="pupilL" cx="124" cy="132" r="8" fill="#041827"/>
+      <circle id="pupilR" cx="236" cy="132" r="8" fill="#041827"/>
+      <rect x="120" y="172" rx="8" width="120" height="10" fill="#041827" opacity="0.9"/>
+      <rect x="26" y="216" rx="16" width="308" height="96" fill="rgba(255,255,255,0.02)"/>
+    </svg>
+  </div>
+</div><div id="toast"></div><script>
+const contractAddress = "0xc7BD099627d1C65170a34a3215aB2FC1937d419C";
+const contractABI = [
+	{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"certId","type":"string"},{"indexed":false,"internalType":"string","name":"studentName","type":"string"},{"indexed":false,"internalType":"string","name":"courseName","type":"string"},{"indexed":false,"internalType":"string","name":"certHash","type":"string"},{"indexed":false,"internalType":"uint256","name":"issueDate","type":"uint256"},{"indexed":false,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateIssued","type":"event"},
+	{"inputs":[{"internalType":"string","name":"certId","type":"string"},{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"}],"name":"issueCertificate","outputs":[],"stateMutability":"nonpayable","type":"function"},
+	{"inputs":[{"internalType":"string","name":"certId","type":"string"}],"name":"verifyCertificate","outputs":[{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"},{"internalType":"uint256","name":"issueDate","type":"uint256"},{"internalType":"address","name":"issuer","type":"address"}],"stateMutability":"view","type":"function"}
+];
+
+const $ = id => document.getElementById(id);
+function toast(msg){ const e=document.createElement('div'); e.className='toast'; e.innerText=msg; $('toast').appendChild(e); setTimeout(()=>e.remove(),4200); }
+
+let provider, signer, contract, readProvider;
+let issuedCount = 0;
+function initChart(){ try{ const c=$('chart').getContext('2d'); window.myChart = new Chart(c,{type:'line',data:{labels:[],datasets:[{label:'issued',data:[],borderColor:'#00f0e0',backgroundColor:'rgba(0,240,224,0.07)',fill:true,tension:0.45}]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});}catch(e){} }
+(function robotFollow(){ const pL=document.getElementById('pupilL'), pR=document.getElementById('pupilR'), robot=document.getElementById('robotCard'); let W=window.innerWidth, H=window.innerHeight; window.addEventListener('resize',()=>{W=window.innerWidth;H=window.innerHeight}); window.addEventListener('pointermove',(e)=>{const map=(v,a,b,c,d)=>c+(v-a)*(d-c)/(b-a); const pxL=Math.max(100,Math.min(140,map(e.clientX,0,W,100,140))); const pyL=Math.max(120,Math.min(150,map(e.clientY,0,H,120,150))); const pxR=Math.max(220,Math.min(260,map(e.clientX,0,W,220,260))); const pyR=Math.max(120,Math.min(150,map(e.clientY,0,H,120,150))); if(pL){pL.setAttribute('cx',pxL);pL.setAttribute('cy',pyL);} if(pR){pR.setAttribute('cx',pxR);pR.setAttribute('cy',pyR);} const rx=(e.clientX-W/2)/140; const ry=(e.clientY-H/2)/220; if(robot) robot.style.transform=`translateY(${Math.max(-12,Math.min(12,-ry))}px) rotate(${rx}deg)`; }); })();
+
+function drawQR(text){ const box=$('qrcode'); box.innerHTML=''; try{ new QRCode(box,{text,width:190,height:190,colorDark:"#000000",colorLight:"#ffffff"}); }catch(e){ box.innerText='QR error' } }
+
+async function setupReadProvider(){ try{ readProvider = new ethers.providers.JsonRpcProvider('https://rpc.sepolia.org'); }catch(e){ readProvider = ethers.getDefaultProvider('sepolia'); } }
+
+async function connectWallet(){ try{ if(!window.ethereum){ toast('Install MetaMask'); return; } provider = new ethers.providers.Web3Provider(window.ethereum); await provider.send('eth_requestAccounts',[]); signer = provider.getSigner(); const addr = await signer.getAddress(); $('addrShort')?.innerText = addr.slice(0,6)+'...'+addr.slice(-4); const net = await provider.getNetwork(); $('netLabel').innerText = net.name||net.chainId; $('networkBadge').innerText='Connected'; contract = new ethers.Contract(contractAddress,contractABI,signer); toast('Wallet connected'); try{ contract.on('CertificateIssued',(certId,studentName,courseName,certHash,issueDate,issuer)=>{ addTxDisplay(`Event: ${certId} by ${issuer}`); incrementCount(); }); }catch(e){} }catch(e){ console.error(e); toast('Connect failed'); } }
+
+function addTxDisplay(txt){ const node=document.createElement('div'); node.style.marginBottom='8px'; node.style.color='#cfefff'; node.innerText=String(txt).slice(0,400); $('issuedBox').prepend(node); }
+
+function incrementCount(){ issuedCount++; $('count').innerText = issuedCount; if(window.myChart){ window.myChart.data.labels.push(''); window.myChart.data.datasets[0].data.push(Math.floor(Math.random()*6)+1); window.myChart.update(); } }
+
+async function issueCertificate(){ if(!contract){ toast('Connect wallet first'); return; } const certId = $('certId').value.trim(); if(!certId){ toast('Enter certificate ID'); return; } const student = $('studentName').value.trim(); const course = $('courseName').value.trim(); const raw = $('rawHash').value.trim(); const certHash = raw ? ethers.utils.id(raw) : ethers.utils.hexlify(ethers.utils.randomBytes(12)); try{ $('issueBtn').disabled=true; $('txStatus').innerText='Sending transaction...'; const tx = await contract.issueCertificate(certId, student, course, certHash); addTxDisplay(`Tx: ${tx.hash}`); toast('Tx sent'); await tx.wait(); $('txStatus').innerText='Mined: '+tx.hash; const issued = { certId, student, course, certHash, issueDate: new Date().toLocaleString(), issuer: await signer.getAddress() }; $('issuedJson').innerText = JSON.stringify(issued,null,2); $('issuedBox').classList.remove('hidden'); const url = window.location.origin + window.location.pathname + '?certId=' + encodeURIComponent(certId); drawQR(url); incrementCount(); await exportPDF_auto(issued); }catch(e){ console.error(e); toast('Tx failed'); $('txStatus').innerText='Tx failed'; } finally{ $('issueBtn').disabled=false; } }
+
+async function verifyCertificate_manual(){ await verifyCertificateRun($('verifyId').value.trim()); }
+
+async function verifyCertificateRun(id){ if(!id){ toast('Enter cert ID'); return; } try{ let readContract; if(readProvider){ readContract = new ethers.Contract(contractAddress,contractABI,readProvider); } else { await setupReadProvider(); readContract = new ethers.Contract(contractAddress,contractABI,readProvider); } const out = await readContract.verifyCertificate(id); const studentName = out[0] || '—'; const courseName = out[1] || '—'; const certHash = out[2] || '—'; const issueDate = (out[3] && out[3].toNumber) ? new Date(out[3].toNumber()*1000).toLocaleString() : out[3] || '—'; const issuer = out[4] || '—'; $('vStudent').innerText = studentName; $('vCourse').innerText = courseName; $('vMeta').innerText = 'Certificate ID: '+id; $('vHash').innerText = 'Hash: '+certHash; $('vIssuer').innerText = issuer; $('vDate').innerText = issueDate; $('vStatus').innerText = 'VALID'; $('verifyRes').classList.remove('hidden'); prepareVerifiedPDF({certId:id,student:studentName,course:courseName,hash:certHash,issuer,issueDate}); toast('Certificate verified'); }catch(e){ console.error(e); $('vStudent').innerText='—'; $('vCourse').innerText='—'; $('vMeta').innerText='Certificate ID: '+id; $('vHash').innerText=''; $('vIssuer').innerText='—'; $('vDate').innerText='—'; $('vStatus').innerText='NOT FOUND'; $('verifyRes').classList.remove('hidden'); toast('Verify failed'); } }
+
+async function exportPDF_auto(obj){ try{ const { jsPDF } = window.jspdf; const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'}); doc.setFillColor(6,14,32); doc.rect(0,0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F'); doc.setDrawColor(139,99,255); doc.setLineWidth(6); doc.rect(18,18, doc.internal.pageSize.width-36, doc.internal.pageSize.height-36, 'S'); doc.setFontSize(28); doc.setTextColor(255,255,255); doc.text('BlockSense — Certificate',60,80); doc.setFontSize(14); doc.setTextColor(200,220,235); doc.text('Tamper-proof on-chain certificate — verify using QR or contract',60,104); doc.setFillColor(255,255,255,0.03); doc.rect(60,130,620,220,'F'); doc.setFontSize(22); doc.setTextColor(255,255,255); doc.text(obj.student||'Recipient',80,170); doc.setFontSize(12); doc.setTextColor(200,220,235); doc.text('Course: '+(obj.course||'—'),80,200); doc.text('Certificate ID: '+(obj.certId||'—'),80,220); doc.text('Issued: '+(obj.issueDate||new Date().toLocaleString()),80,240); doc.text('Hash: '+(obj.certHash||obj.hash||'—'),80,260); const url = window.location.origin + window.location.pathname + '?certId=' + encodeURIComponent(obj.certId||''); const canvas = document.createElement('canvas'); try{ new QRCode(canvas,{text:url,width:200,height:200}); }catch(e){} const qrCanvas = document.querySelector('#qrcode canvas'); if(qrCanvas){ try{ const data = qrCanvas.toDataURL('image/png'); doc.addImage(data,'PNG',700,140,140,140); }catch(e){} } doc.setFontSize(10); doc.setTextColor(190,210,230); doc.text('Issuer: BlockSense • Contract: '+(contractAddress||'—'),60,doc.internal.pageSize.height-60); const fname = (obj.certId||'certificate') + '.pdf'; doc.save(fname); }catch(e){console.error(e);} }
+
+function prepareVerifiedPDF(obj){ const link = $('downloadVerifiedPdf'); link.onclick = (ev)=>{ ev.preventDefault(); exportPDF_verified(obj); }; }
+
+async function exportPDF_verified(obj){ const { jsPDF } = window.jspdf; const doc = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'}); doc.setFillColor(255,255,255); doc.rect(0,0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F'); doc.setFillColor(6,14,32); doc.setDrawColor(60,60,220); doc.setLineWidth(2); doc.rect(36,36, doc.internal.pageSize.width-72, doc.internal.pageSize.height-72, 'S'); doc.setFontSize(20); doc.setTextColor(6,14,32); doc.text('BlockSense — Verified Certificate',60,80); doc.setFontSize(14); doc.setTextColor(40,40,40); doc.text('Certificate ID: '+(obj.certId||'—'),60,120); doc.text('Recipient: '+(obj.student||'—'),60,144); doc.text('Course / Event: '+(obj.course||'—'),60,168); doc.text('Issuer: '+(obj.issuer||'—'),60,192); doc.text('Issued: '+(obj.issueDate||'—'),60,216); doc.setFontSize(10); doc.setTextColor(90,90,90); doc.text('On-chain Hash: '+(obj.hash||obj.certHash||'—'),60,260); const qrCanvas = document.querySelector('#qrcode canvas'); if(qrCanvas){ try{ const data = qrCanvas.toDataURL('image/png'); doc.addImage(data,'PNG',60,300,140,140); }catch(e){} } doc.save((obj.certId||'verified') + '.pdf'); }
+
+window.addEventListener('load', async ()=>{ await setupReadProvider(); initChart(); $('connectBtn').addEventListener('click', connectWallet); $('issueBtn').addEventListener('click', issueCertificate); $('qrBtn').addEventListener('click', ()=>{ const id = $('certId').value.trim(); if(!id){ toast('Enter cert ID'); return; } const url = window.location.origin + window.location.pathname + '?certId=' + encodeURIComponent(id); drawQR(url); toast('QR generated'); }); $('verifyBtn').addEventListener('click', verifyCertificate_manual); $('exportPdfBtn').addEventListener('click', ()=>{ const issuedText = $('issuedJson').innerText; const obj = issuedText ? JSON.parse(issuedText) : { certId: $('certId').value||'N/A', student: $('studentName').value||'N/A', course: $('courseName').value||'N/A', issueDate: new Date().toLocaleString() }; exportPDF_auto(obj); }); drawQR(window.location.origin); const params = new URLSearchParams(window.location.search); const c = params.get('certId'); if(c){ $('verifyId').value = c; await verifyCertificateRun(c); } });
+
+</script></body>
 </html>
