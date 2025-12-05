@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BlockSense — Verify</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#061025;--muted:#9fb3c9;--good:#06f0d0;--bad:#ff6b6b}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,Roboto,Arial;background:linear-gradient(180deg,#020617, #07132a);color:#e8fbff}
+.wrapper{max-width:820px;margin:28px auto;padding:18px}
+.card{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+.h1{font-weight:800;font-size:20px}
+.small{font-size:13px;color:var(--muted)}
+.row{display:flex;gap:12px;align-items:center;margin-top:12px}
+.col{flex:1}
+.qr-preview{width:120px;height:120px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;color:#000}
+.badge{padding:8px 12px;border-radius:10px;font-weight:800}
+.green{background:linear-gradient(90deg,#06f0d0,#8b63ff);color:#041226}
+.red{background:linear-gradient(90deg,#ff7a59,#ffba49);color:#041226}
+#details{margin-top:14px}
+.key{color:var(--muted);font-size:13px}
+.value{font-weight:700}
+.btn{margin-top:12px;padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,#06f0d0,#8b63ff);color:#041226;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="card">
+    <div class="h1">BlockSense — Public Verification</div>
+    <div class="small" style="margin-top:6px">Scan QR or open this page with ?certId=ID to view certificate details</div>
+
+    <div class="row" style="margin-top:14px">
+      <div class="col">
+        <input id="certInput" placeholder="Enter Certificate ID (e.g. BLOCK-001)" style="width:100%;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:#e8fbff" />
+      </div>
+      <div><button id="checkBtn" class="btn">Verify</button></div>
+    </div>
+
+    <div id="result" style="display:none" class="card" >
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div id="statusLabel" style="font-weight:900">—</div>
+          <div id="subLabel" class="small" style="margin-top:6px">—</div>
+        </div>
+        <div style="text-align:right">
+          <div id="issuerAddr" class="small">Issuer: —</div>
+          <div style="margin-top:8px"><span id="statusBadge" class="badge green">—</span></div>
+        </div>
+      </div>
+
+      <div id="details">
+        <div style="margin-top:12px"><span class="key">Recipient: </span> <span id="dStudent" class="value">—</span></div>
+        <div style="margin-top:8px"><span class="key">Course: </span> <span id="dCourse" class="value">—</span></div>
+        <div style="margin-top:8px"><span class="key">Certificate ID: </span> <span id="dId" class="value">—</span></div>
+        <div style="margin-top:8px"><span class="key">Issue Date: </span> <span id="dDate" class="value">—</span></div>
+        <div style="margin-top:8px"><span class="key">Cert Hash: </span> <span id="dHash" class="value">—</span></div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
+        <button id="downloadPdf" class="btn">Download Certificate (PDF)</button>
+        <div id="qrBox" style="margin-left:auto"></div>
+      </div>
+    </div>
+
+    <div id="notFound" style="display:none;margin-top:12px" class="small">Certificate not found on chain.</div>
+
+  </div>
+</div>
+
+<script>
+const contractAddress = "0xC63e1c7D08Ed832D30a8c9E7AAa66C1D898B40c0";
+const contractABI = [
+	{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"certId","type":"string"},{"indexed":false,"internalType":"string","name":"studentName","type":"string"},{"indexed":false,"internalType":"string","name":"courseName","type":"string"},{"indexed":false,"internalType":"string","name":"certHash","type":"string"},{"indexed":false,"internalType":"uint256","name":"issueDate","type":"uint256"},{"indexed":false,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateIssued","type":"event"},
+	{"inputs":[{"internalType":"string","name":"certId","type":"string"}],"name":"verifyCertificate","outputs":[{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"},{"internalType":"uint256","name":"issueDate","type":"uint256"},{"internalType":"address","name":"issuer","type":"address"}],"stateMutability":"view","type":"function"}
+];
+
+const $ = id => document.getElementById(id);
+const PUBLIC_RPC = "https://rpc.ankr.com/eth_sepolia";
+
+async function verifyById(id){
+  showLoading();
+  try{
+    const provider = new ethers.providers.JsonRpcProvider(PUBLIC_RPC);
+    const contract = new ethers.Contract(contractAddress, contractABI, provider);
+    const out = await contract.verifyCertificate(id);
+    if(!out || (Array.isArray(out) && out[0] === "" && out[1] === "")){
+      showNotFound();
+      return;
+    }
+    const student = out[0] || '—';
+    const course = out[1] || '—';
+    const certHash = out[2] || '—';
+    let issueDate = out[3];
+    if(issueDate && typeof issueDate.toNumber === 'function'){
+      const ts = issueDate.toNumber();
+      issueDate = new Date(ts*1000).toLocaleString();
+    } else {
+      issueDate = issueDate || '—';
+    }
+    const issuer = out[4] || '—';
+    showResult({student, course, certHash, issueDate, issuer, certId:id});
+  }catch(e){
+    console.error(e);
+    showNotFound();
+  }
+}
+
+function showLoading(){
+  $('result').style.display='none';
+  $('notFound').style.display='none';
+  $('statusLabel').innerText = 'Checking...';
+}
+
+function showNotFound(){
+  $('result').style.display='none';
+  $('notFound').style.display='block';
+}
+
+function showResult(obj){
+  $('result').style.display='block';
+  $('notFound').style.display='none';
+  $('statusLabel').innerText = obj.student;
+  $('subLabel').innerText = obj.course;
+  $('issuerAddr').innerText = 'Issuer: ' + obj.issuer;
+  $('statusBadge').innerText = 'VALID';
+  $('statusBadge').className = 'badge green';
+  $('dStudent').innerText = obj.student;
+  $('dCourse').innerText = obj.course;
+  $('dId').innerText = obj.certId;
+  $('dDate').innerText = obj.issueDate;
+  $('dHash').innerText = obj.certHash;
+  // qr preview for verification URL
+  const verifyUrl = window.location.origin + (window.location.pathname.endsWith('/') ? '' : '/') + 'verify.html?certId=' + encodeURIComponent(obj.certId);
+  renderQR(verifyUrl);
+  // set download handler
+  $('downloadPdf').onclick = ()=> generatePDF(obj, verifyUrl);
+}
+
+function renderQR(url){
+  const box = $('qrBox'); box.innerHTML = '';
+  new QRCode(box, { text:url, width:120, height:120, colorDark:"#000000", colorLight:"#ffffff" });
+}
+
+async function generatePDF(data, verifyUrl){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
+  doc.setFillColor(6,14,32); doc.rect(0,0,doc.internal.pageSize.width,doc.internal.pageSize.height,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.text('BlockSense — Certificate', 60,70);
+  doc.setFontSize(14); doc.setTextColor(200,220,235); doc.text('Verified tamper-proof certificate', 60,96);
+  doc.setFillColor(255,255,255,0.03); doc.rect(60,140,680,220,'F');
+  doc.setFontSize(18); doc.setTextColor(255,255,255); doc.text(data.student || 'Recipient', 80,180);
+  doc.setFontSize(12); doc.setTextColor(200,220,235);
+  doc.text('Course: ' + (data.course||'—'), 80,205);
+  doc.text('Certificate ID: ' + (data.certId||'—'), 80,225);
+  doc.text('Issue Date: ' + (data.issueDate||'—'), 80,245);
+  doc.text('Cert Hash: ' + (data.certHash||'—'), 80,265);
+  doc.setFontSize(10); doc.setTextColor(180,200,220); doc.text('Verified via BlockSense', 80, 292);
+  try{
+    const qrDiv = document.createElement('div');
+    new QRCode(qrDiv, { text: verifyUrl, width:160, height:160, colorDark:"#000000", colorLight:"#ffffff" });
+    setTimeout(()=>{
+      const canvas = qrDiv.querySelector('canvas');
+      if(canvas){
+        const img = canvas.toDataURL('image/png');
+        doc.addImage(img,'PNG',760,150,120,120);
+        doc.save((data.certId||'certificate') + '.pdf');
+      } else {
+        doc.save((data.certId||'certificate') + '.pdf');
+      }
+    },120);
+  }catch(e){
+    doc.save((data.certId||'certificate') + '.pdf');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const u = new URL(location.href);
+  const c = u.searchParams.get('certId');
+  if(c){
+    $('certInput').value = c;
+    verifyById(c);
+  }
+  $('checkBtn').addEventListener('click', ()=>{
+    const id = $('certInput').value.trim();
+    if(!id) return;
+    verifyById(id);
+  });
+});
+</script>
+</body>
+</html>
