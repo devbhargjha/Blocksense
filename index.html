@@ -222,7 +222,7 @@ function generatePDF(obj, verifyUrl, autoDownload=false){
 async function manualExport(){
   const issuedText = $('issuedJson').innerText;
   const obj = issuedText ? JSON.parse(issuedText) : { certId:$('certId').value||'N/A', student:$('studentName').value||'N/A', course:$('courseName').value||'N/A', issueDate:new Date().toLocaleString(), certHash:'—' };
-  const url = window.location.origin + (window.location.pathname.endsWith('/') ? '' : '/') + 'verify.html?certId=' + encodeURIComponent(obj.certId||'');
+  const url = `https://devbhargjha.github.io/Blocksense/verify.html?certId=${encodeURIComponent(certId)}`;
   generatePDF(obj, url, true);
 }
 
@@ -232,8 +232,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('qrBtn').addEventListener('click', ()=>{
     const id = $('certId').value.trim();
     if(!id){ toast('Enter cert ID'); return; }
-    const verifyUrl = window.location.origin + (window.location.pathname.endsWith('/') ? '' : '/') + 'verify.html?certId=' + encodeURIComponent(id);
-    drawQR(verifyUrl);
+    const verifyUrl = `https://devbhargjha.github.io/Blocksense/verify.html?certId=${encodeURIComponent(id)}`;
     toast('QR generated');
   });
   $('exportBtn').addEventListener('click', manualExport);
