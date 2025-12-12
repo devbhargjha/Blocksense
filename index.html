@@ -220,10 +220,117 @@ body::after{content:"";position:fixed;inset:0;background-image:
   </div>
 </div><div id="toast"></div><script>
 const contractAddress = "0x3E595db94c2f60cD21c5Ec2698C98eF208874733";
-const contractABI = [
-	{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"certId","type":"string"},{"indexed":false,"internalType":"string","name":"studentName","type":"string"},{"indexed":false,"internalType":"string","name":"courseName","type":"string"},{"indexed":false,"internalType":"string","name":"certHash","type":"string"},{"indexed":false,"internalType":"uint256","name":"issueDate","type":"uint256"},{"indexed":false,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateIssued","type":"event"},
-	{"inputs":[{"internalType":"string","name":"certId","type":"string"},{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"}],"name":"issueCertificate","outputs":[],"stateMutability":"nonpayable","type":"function"},
-	{"inputs":[{"internalType":"string","name":"certId","type":"string"}],"name":"verifyCertificate","outputs":[{"internalType":"string","name":"studentName","type":"string"},{"internalType":"string","name":"courseName","type":"string"},{"internalType":"string","name":"certHash","type":"string"},{"internalType":"uint256","name":"issueDate","type":"uint256"},{"internalType":"address","name":"issuer","type":"address"}],"stateMutability":"view","type":"function"}
+const contractABI =[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "certId",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "studentName",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "courseName",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "certHash",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "issueDate",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "issuer",
+				"type": "address"
+			}
+		],
+		"name": "CertificateIssued",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "certId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "studentName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "courseName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "certHash",
+				"type": "string"
+			}
+		],
+		"name": "issueCertificate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "certId",
+				"type": "string"
+			}
+		],
+		"name": "verifyCertificate",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "studentName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "courseName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "certHash",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "issueDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "issuer",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
 ];
 
 const $ = id => document.getElementById(id);
